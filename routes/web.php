@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\BookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,5 +17,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::post('/books', [BookController::class, 'store'])->name('book.store');
-Route::patch('/books/{book}', [BookController::class, 'update'])->name('book.update');
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+require __DIR__.'/auth.php';
