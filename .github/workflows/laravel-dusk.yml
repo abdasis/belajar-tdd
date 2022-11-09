@@ -1,0 +1,36 @@
+name: Test
+ 
+on:
+  workflow_dispatch:
+    inputs:
+      browser:
+        type: choice
+        description: Which browser to test
+        required: true
+        default: chrome
+        options:
+          - chrome
+          - firefox
+          - edge
+ 
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+ 
+    services:
+      selenium:
+        image: selenium/standalone-${{ github.event.inputs.browser }}
+ 
+    steps:
+      - uses: actions/checkout@v2
+ 
+      - run: php artisan dusk
+        env:
+          BROWSER: ${{ github.event.inputs.browser }}
+ 
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: screenshots
+          path: screenshots/
