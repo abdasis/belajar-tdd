@@ -49,4 +49,9 @@ jobs:
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
+          BROWSER: ${{ github.event.inputs.browser }}
         run: php artisan dusk
+      - uses: actions/upload-artifact@v2
+        with:
+          name: screenshots
+          path: screenshots/
