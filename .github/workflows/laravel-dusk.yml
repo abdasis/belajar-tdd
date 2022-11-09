@@ -4,8 +4,6 @@ jobs:
 
   dusk-php:
     runs-on: ubuntu-latest
-    env:
-      APP_URL: "http://127.0.0.1:8000"
     steps:
       - uses: actions/checkout@v3
       - name: Prepare The Environment
@@ -35,6 +33,7 @@ jobs:
         run: npm run build
       - name: Run Dusk Tests
         env:
+          APP_URL: "http://127.0.0.1:8000"
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
         run: php artisan dusk
