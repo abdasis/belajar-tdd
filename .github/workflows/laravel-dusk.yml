@@ -1,57 +1,66 @@
-name: Test
-
-on:
-  workflow_dispatch:
-    inputs:
-      browser:
-        type: choice
-        description: Which browser to test
-        required: true
-        default: chrome
-        options:
-          - chrome
-          - firefox
-          - edge
-
+name: Continuos Integration for Laravel Dusk
+on: [ push ]
 jobs:
-  laravel-dusk:
-    name: Laravel Dusk
+  dusk-php:
     runs-on: ubuntu-latest
 
     services:
-      selenium:
-        image: selenium/standalone-${{ github.event.inputs.browser }}
+      mysql:
+        image: mariadb:10.2
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: dusk
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    timeout-minutes: 30
 
     steps:
-      - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
+      - uses: actions/checkout@v2
         with:
-          php-version: '8.0'
-      - uses: actions/checkout@v3
-      - name: Copy .env
-        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
-      - name: Update Composer
-        run: composer update
-      - name: Install Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-      - name: Generate key
-        run: php artisan key:generate
-      - name: Install npm
-        run: npm install
-      - name: Install node package
-        run: npm run build
-      - name: Directory Permissions
-        run: chmod -R 777 storage bootstrap/cache
-      - name: Create Database
+          fetch-depth: 1
+
+      - name: Prepare The Environment
+        run: cp .env.ci .env
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+
+      - name: Install Composer Dependencies
         run: |
-          mkdir -p database
-          touch database/database.sqlite
-      - name: Execute tests (Unit and Feature tests) via PHPUnit
+          composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
+          chmod -R 777 storage bootstrap/cache
+          npm install
+          npm run production
+      - name: Generate Application Key
+        run: |
+          php artisan key:generate
+          php artisan passport:keys
+      - name: Upgrade Chrome Driver
+        run: php artisan dusk:chrome-driver
+
+      - name: Start Chrome Driver
+        run: ./vendor/laravel/dusk/bin/chromedriver-linux > /dev/null 2>&1 &
+
+      - name: Run Laravel Server
+        run: php artisan serve > /dev/null 2>&1 &
+
+      - name: Run Dusk Tests
+        run: |
+          chmod -R 0755 vendor/laravel/dusk/bin/
+          php artisan dusk
         env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
-          BROWSER: ${{ github.event.inputs.browser }}
-        run: php artisan dusk
-      - uses: actions/upload-artifact@v2
-        with:
-          name: screenshots
-          path: screenshots/
+          APP_ENV: local
+          APP_URL: "http://127.0.0.1:8000"
+          DB_CONNECTION: mysql
+          DB_DATABASE: dusk
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          DB_USER: root
