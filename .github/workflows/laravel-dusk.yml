@@ -27,6 +27,10 @@ jobs:
           touch database/database.sqlite
       - name: Run Laravel Server
         run: php artisan serve --no-reload &
+
+      - name: Install NPM
+        run: npm install
+
       - name: Run vite js
         run: npm run build
       - name: Run Dusk Tests
