@@ -30,7 +30,7 @@ jobs:
         run: npm install
 
       - name: Run vite js
-        run: npm run dev
+        run: npm run build
       - name: Run Dusk Tests
         env:
           APP_URL: "http://127.0.0.1:8000"
