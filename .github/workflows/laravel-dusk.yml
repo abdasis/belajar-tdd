@@ -6,17 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_URL: "http://127.0.0.1:8000"
-      DB_USERNAME: root
-      DB_PASSWORD: root
-      MAIL_MAILER: log
     steps:
       - uses: actions/checkout@v3
       - name: Prepare The Environment
         run: cp .env.example .env
-      - name: Create Database
-        run: |
-          sudo systemctl start mysql
-          mysql --user="root" --password="root" -e "CREATE DATABASE \`tdd\` character set UTF8mb4 collate utf8mb4_bin;"
+
       - name: Install Composer Dependencies
         run: composer install --no-progress --prefer-dist --optimize-autoloader
       - name: Generate Application Key
@@ -32,7 +26,9 @@ jobs:
           mkdir -p database
           touch database/database.sqlite
       - name: Run Laravel Server
-        run: php artisan serve --no-reload &
+        run: |
+          php artisan serve --no-reload &
+          npm run build
       - name: Run Dusk Tests
         env:
           DB_CONNECTION: sqlite
