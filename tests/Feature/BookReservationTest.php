@@ -69,7 +69,7 @@ class BookReservationTest extends TestCase
 
         $book = Book::first();
 
-        $res = $this->patch('books/' . $book->id, [
+        $res = $this->patch('/books/' . $book->id, [
             'title' => 'Belajar Pemrograman Laravel',
             'author' => 'Muhammad Rois'
         ]);
