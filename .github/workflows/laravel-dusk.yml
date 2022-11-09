@@ -42,7 +42,8 @@ jobs:
           touch database/database.sqlite
 
       - name: Run Laravel Server
-        run: php artisan serve
+        run: |
+          php artisan serve
 
       - name: Run Dusk Tests
         env:
