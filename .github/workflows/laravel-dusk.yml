@@ -29,8 +29,6 @@ jobs:
         with:
           php-version: '8.1'
 
-
-
       - name: Install Composer Dependencies
         run: |
           composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
@@ -44,14 +42,6 @@ jobs:
 
       - name: Upgrade Chrome Driver
         run: php artisan dusk:chrome-driver
-
-      - name: Setup Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install libgtk2.0-0
-          sudo apt-get install chromium-browser
-          sudo apt-get -y install gtk2-engines-pixbuf
-          Xvfb -ac :0 -screen 0 1280x1024x16 &
 
       - name: Start Chrome Driver
         run: ./vendor/laravel/dusk/bin/chromedriver-linux > /dev/null 2>&1 &
